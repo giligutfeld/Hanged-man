@@ -12,10 +12,8 @@ void printLettersTried(char lettersTried[]) {
     int i = 1;
     if (lettersTried[0] != '\0')
         printf("%c", lettersTried[0]);
-    while (lettersTried[i] != '\0') {
-        printf(", %c", lettersTried[i]);
-        i++;
-    }
+    while (lettersTried[i] != '\0')
+        printf(", %c", lettersTried[i++]);
     printf("\nplease choose a letter:\n");
 }
 
