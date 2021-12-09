@@ -134,7 +134,7 @@ void bubbleSort(char words[WORD_SIZE][WORD_COUNT], int count) {
 }
 
 int main() {
-    char str[WORD_COUNT * WORD_SIZE], words[WORD_SIZE][WORD_COUNT], *token, found[WORD_COUNT];
+    char str[WORD_COUNT * WORD_SIZE], words[WORD_SIZE][WORD_COUNT], *token, found[WORD_COUNT] = "";
     int count = 0, count_ = 0, i = 0, option;
     printf("Enter your words!\n");
     scanf("%[^\n]", str);
@@ -166,7 +166,6 @@ int main() {
         found[i++] = '_';
         count_++;
     }
-    found[i] = '\0';
 
     // Run the game
     game(words[option], found, words[0], count_);
