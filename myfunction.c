@@ -20,7 +20,7 @@ void smoothBlur(int dim, pixel *src, char *c) {
     pixel *pixel1, *pixel2, *pixel3, *pixel4, *pixel5, *pixel6, *pixel7, *pixel8, *pixel9;
     int sumRed1, sumRed2, sumRed3, sumGreen1, sumGreen2, sumGreen3, sumBlue1, sumBlue2, sumBlue3;
 
-    for (i = 1; i < end; ++i) {
+    for (i = end - 1; i > 0; --i) {
 
         pixel1 = src - 1;
         pixel2 = src;
@@ -42,7 +42,7 @@ void smoothBlur(int dim, pixel *src, char *c) {
         sumBlue2 = pixel2->blue + pixel5->blue + pixel8->blue;
         sumBlue3 = pixel3->blue + pixel6->blue + pixel9->blue;
 
-        for (j = 1; j < end - 2; j+=3) {
+        for (j = end - 3; j > 0; j-=3) {
 
             *(c++) = (char)((sumRed1 + sumRed2 + sumRed3) / 9);
             *(c++) = (char)((sumGreen1 + sumGreen2 + sumGreen3) / 9);
@@ -81,7 +81,7 @@ void smoothBlur(int dim, pixel *src, char *c) {
             sumBlue3 = pixel3->blue + pixel6->blue + pixel9->blue;
         }
 
-        for (k = j; k < end; ++k) {
+        for (k = j - 1; k > 0; --k) {
             pixel2 = src + dim;
             pixel3 = pixel2 + dim;
 
@@ -104,10 +104,10 @@ void smoothSharp(int dim, unsigned char *src, unsigned char *c) {
     src += 3;
     unsigned char *pixel2, *pixel3;
 
-    for (i = 1; i < end; i++) {
+    for (i = end - 1; i > 0; i--) {
         pixel2 = src + DIM3;
         pixel3 = pixel2 + DIM3;
-        for (j = 1; j < end; j++) {
+        for (j = end - 1; j > 0; j--) {
 
             red = - (*(src - 3) + *src + *(src + 3) + *(pixel2 - 3) -9 * *pixel2 +
                          *(pixel2 + 3) + *(pixel3 - 3) + *pixel3 + *(pixel3 + 3));
@@ -155,7 +155,7 @@ void smoothBlurFilter(int dim, pixel *src, char *c) {
     pixel *pixel1, *pixel2, *pixel3, *pixel4, *pixel5, *pixel6, *pixel7, *pixel8, *pixel9, *minp, *maxp;
     int sumRed1, sumRed2, sumRed3, sumGreen1, sumGreen2, sumGreen3, sumBlue1, sumBlue2, sumBlue3;
 
-    for (i = 1; i < end; ++i) {
+    for (i = end - 1; i > 0; --i) {
 
         pixel1 = src - 1;
         pixel2 = src;
@@ -179,7 +179,7 @@ void smoothBlurFilter(int dim, pixel *src, char *c) {
         sumGreen3 = pixel3->green + pixel6->green + pixel9->green;
         sumBlue3 = pixel3->blue + pixel6->blue + pixel9->blue;
 
-        for (j = 1; j < end; ++j) {
+        for (j = end - 1; j > 0; --j) {
 
             red = sumRed1 + sumRed2 + sumRed3;
             green = sumGreen1 + sumGreen2 + sumGreen3;
@@ -314,7 +314,7 @@ void smoothBlurFilter(int dim, pixel *src, char *c) {
 void charsToPixels(Image *charsImg, pixel* pixels) {
     char *data = image->data;
     int row, i;
-    for (row = 0; row < NM - 3; row+=4) {
+    for (row = NM - 3; row > 0; row-=4) {
         pixels->red = *(data++);
         pixels->green = *(data++);
         pixels->blue = *(data++);
@@ -332,7 +332,7 @@ void charsToPixels(Image *charsImg, pixel* pixels) {
         pixels->blue = *(data++);
         ++pixels;
     }
-    for (i = row; i < NM; ++i) {
+    for (i = row - 1; i > 0; --i) {
         pixels->red = *(data++);
         pixels->green = *(data++);
         pixels->blue = *(data++);
@@ -346,7 +346,16 @@ void charsToPixelsAndSum(Image *charsImg, pixel* pixels) {
     char *data = image->data;
     int row, i, j;
 
-    for (row = 0; row < NM - 2; row += 3) {
+    // first row
+    for (i = m - 3; i > 0; i -= 4) {
+        pixels->red = *data;
+        ++data;
+        pixels->green = *data;
+        ++data;
+        pixels->blue = *data;
+        ++data;
+        ++pixels;
+
         pixels->red = *data;
         ++data;
         pixels->green = *data;
@@ -371,7 +380,8 @@ void charsToPixelsAndSum(Image *charsImg, pixel* pixels) {
         ++data;
         ++pixels;
     }
-    for (i = row; i < NM; ++i) {
+
+    for (j = i - 1; i > 0; --i) {
         pixels->red = *data;
         ++data;
         pixels->green = *data;
@@ -381,19 +391,117 @@ void charsToPixelsAndSum(Image *charsImg, pixel* pixels) {
         ++pixels;
     }
 
-    pixels = helpSum;
     for (i = 1; i < m - 1; i++) {
-        for (j = 1; j < m - 1; j++) {
-            helpSum->sum = helpSum->red + helpSum->green + helpSum->blue;
-            ++helpSum;
+
+        // first pixel in the row
+        pixels->red = *data;
+        ++data;
+        pixels->green = *data;
+        ++data;
+        pixels->blue = *data;
+        ++data;
+        ++pixels;
+
+        for (row = 1; row < m - 3; row += 3) {
+            pixels->red = *data;
+            ++data;
+            pixels->green = *data;
+            ++data;
+            pixels->blue = *data;
+            ++data;
+            pixels->sum = pixels->red + pixels->green + pixels->blue;
+            ++pixels;
+
+            pixels->red = *data;
+            ++data;
+            pixels->green = *data;
+            ++data;
+            pixels->blue = *data;
+            ++data;
+            pixels->sum = pixels->red + pixels->green + pixels->blue;
+            ++pixels;
+
+            pixels->red = *data;
+            pixels->sum = pixels->red;
+            ++data;
+            pixels->green = *data;
+            pixels->sum += pixels->green;
+            ++data;
+            pixels->blue = *data;
+            pixels->sum += pixels->blue;
+            ++data;
+            ++pixels;
         }
-        helpSum += 2;
+        for (j = row; j < m - 1; ++j) {
+            pixels->red = *data;
+            ++data;
+            pixels->green = *data;
+            ++data;
+            pixels->blue = *data;
+            ++data;
+            pixels->sum = pixels->red + pixels->green + pixels->blue;
+            ++pixels;
+        }
+
+        // last pixel in the row
+        pixels->red = *data;
+        ++data;
+        pixels->green = *data;
+        ++data;
+        pixels->blue = *data;
+        ++data;
+        ++pixels;
+    }
+
+    // last row
+    for (i = m - 3; i > 0; i -= 4) {
+        pixels->red = *data;
+        ++data;
+        pixels->green = *data;
+        ++data;
+        pixels->blue = *data;
+        ++data;
+        ++pixels;
+
+        pixels->red = *data;
+        ++data;
+        pixels->green = *data;
+        ++data;
+        pixels->blue = *data;
+        ++data;
+        ++pixels;
+
+        pixels->red = *data;
+        ++data;
+        pixels->green = *data;
+        ++data;
+        pixels->blue = *data;
+        ++data;
+        ++pixels;
+
+        pixels->red = *data;
+        ++data;
+        pixels->green = *data;
+        ++data;
+        pixels->blue = *data;
+        ++data;
+        ++pixels;
+    }
+
+    for (j = i - 1; i > 0; --i) {
+        pixels->red = *data;
+        ++data;
+        pixels->green = *data;
+        ++data;
+        pixels->blue = *data;
+        ++data;
+        ++pixels;
     }
 }
 
 void imageToChars(unsigned char *data, unsigned char* c) {
     int i, j;
-    for (i = 0; i < NM3 - 5; i+=6) {
+    for (i = NM3 - 5; i > 0; i-=6) {
         *c = *data;
         ++data;
         ++c;
@@ -418,7 +526,7 @@ void imageToChars(unsigned char *data, unsigned char* c) {
         ++data;
         ++c;
     }
-    for (j = i; i < NM3; ++j) {
+    for (j = i - 1; i > 0; --j) {
         *c = *data;
         ++data;
         ++c;
