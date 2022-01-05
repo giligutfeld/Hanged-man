@@ -14,23 +14,23 @@ typedef struct {
 } pixel;
 
 
-void smoothBlur(pixel *src, char *c) {
-    int end = m - 1, i, j, k;
+void smoothBlur(int dim, pixel *src, char *c) {
+    int end = dim - 1, i, j, k;
+    ++src;
     pixel *pixel1, *pixel2, *pixel3, *pixel4, *pixel5, *pixel6, *pixel7, *pixel8, *pixel9;
     int sumRed1, sumRed2, sumRed3, sumGreen1, sumGreen2, sumGreen3, sumBlue1, sumBlue2, sumBlue3;
 
-    pixel1 = src - 1;
-    pixel2 = src;
-    pixel3 = src + 1;
-    pixel4 = pixel1 + m;
-    pixel5 = pixel4 + 1;
-    pixel6 = pixel5 + 1;
-    pixel7 = pixel4 + m;
-    pixel8 = pixel7 + 1;
-    pixel9 = pixel8 + 1;
+    for (i = end - 1; i > 0; --i) {
 
-    for (i = 1; i < end; ++i) {
-
+        pixel1 = src - 1;
+        pixel2 = src;
+        pixel3 = src + 1;
+        pixel4 = pixel1 + dim;
+        pixel5 = pixel4 + 1;
+        pixel6 = pixel5 + 1;
+        pixel7 = pixel4 + dim;
+        pixel8 = pixel7 + 1;
+        pixel9 = pixel8 + 1;
 
         sumRed1 = pixel1->red + pixel4->red + pixel7->red;
         sumRed2 = pixel2->red + pixel5->red + pixel8->red;
@@ -42,7 +42,7 @@ void smoothBlur(pixel *src, char *c) {
         sumBlue2 = pixel2->blue + pixel5->blue + pixel8->blue;
         sumBlue3 = pixel3->blue + pixel6->blue + pixel9->blue;
 
-        for (j = 1; j < end - 2; j+=3) {
+        for (j = end - 3; j > 0; j-=3) {
 
             *(c++) = (char)((sumRed1 + sumRed2 + sumRed3) / 9);
             *(c++) = (char)((sumGreen1 + sumGreen2 + sumGreen3) / 9);
@@ -81,31 +81,15 @@ void smoothBlur(pixel *src, char *c) {
             sumBlue3 = pixel3->blue + pixel6->blue + pixel9->blue;
         }
 
-        for (k = j; k < end; ++k) {
-            *(c++) = (char)((pixel1->red + pixel2->red + pixel3->red + pixel4->red + pixel5->red + pixel6->red + pixel7->red + pixel8->red + pixel9->red) / 9);
-            *(c++) = (char)((pixel1->green + pixel2->green + pixel3->green + pixel4->green + pixel5->green + pixel6->green + pixel7->green + pixel8->green + pixel9->green) / 9);
-            *(c++)= (char)((pixel1->blue + pixel2->blue + pixel3->blue + pixel4->blue + pixel5->blue + pixel6->blue + pixel7->blue + pixel8->blue + pixel9->blue) / 9);
+        for (k = j - 1; k > 0; --k) {
+            pixel2 = src + dim;
+            pixel3 = pixel2 + dim;
 
-            ++pixel1;
-            ++pixel2;
-            ++pixel3;
-            ++pixel4;
-            ++pixel5;
-            ++pixel6;
-            ++pixel7;
-            ++pixel8;
-            ++pixel9;
+            *(c++) = (char)(((src - 1)->red + src->red + (src + 1)->red + (pixel2 - 1)->red + pixel2->red + (pixel2 + 1)->red + (pixel3 - 1)->red + pixel3->red + (pixel3 + 1)->red) / 9);
+            *(c++) = (char)(((src - 1)->green + src->green + (src + 1)->green + (pixel2 - 1)->green + pixel2->green + (pixel2 + 1)->green + (pixel3 - 1)->green + pixel3->green + (pixel3 + 1)->green) / 9);
+            *(c++)= (char)(((src - 1)->blue + src->blue + (src + 1)->blue + (pixel2 - 1)->blue + pixel2->blue + (pixel2 + 1)->blue + (pixel3 - 1)->blue + pixel3->blue + (pixel3 + 1)->blue) / 9);
         }
-
-        pixel1 += 2;
-        pixel2 += 2;
-        pixel3 += 2;
-        pixel4 += 2;
-        pixel5 += 2;
-        pixel6 += 2;
-        pixel7 += 2;
-        pixel8 += 2;
-        pixel9 += 2;
+        src += dim;
         c += 6;
     }
 }
@@ -115,13 +99,15 @@ void smoothBlur(pixel *src, char *c) {
 * Ignore pixels where the kernel exceeds bounds. These are pixels with row index smaller than kernelSize/2 and/or
 * column index smaller than kernelSize/2
 */
-void smoothSharp(unsigned char *src, unsigned char *c) {
-    int end = m - 1, i, j, red, green, blue;
-    register unsigned char *pixel2 = src + DIM3;
-    register unsigned char *pixel3 = pixel2 + DIM3;
+void smoothSharp(int dim, unsigned char *src, unsigned char *c) {
+    int end = dim - 1, i, j, red, green, blue;
+    src += 3;
+    unsigned char *pixel2, *pixel3;
 
-    for (i = 1; i < end; i++) {
-        for (j = 1; j < end; j++) {
+    for (i = end - 1; i > 0; i--) {
+        pixel2 = src + DIM3;
+        pixel3 = pixel2 + DIM3;
+        for (j = end - 1; j > 0; j--) {
 
             red = - (*(src - 3) + *src + *(src + 3) + *(pixel2 - 3) -9 * *pixel2 +
                      *(pixel2 + 3) + *(pixel3 - 3) + *pixel3 + *(pixel3 + 3));
@@ -158,29 +144,29 @@ void smoothSharp(unsigned char *src, unsigned char *c) {
             pixel3 += 3;
         }
         src += 6;
-        pixel2 += 6;
-        pixel3 += 6;
         c += 6;
     }
 }
 
-void smoothBlurFilter(pixel *src, char *c) {
-    int end = m - 1, i, j, min_intensity, max_intensity, red, green, blue;
+void smoothBlurFilter(int dim, pixel *src, char *c) {
+    int end = dim - 1, i, j, min_intensity, max_intensity, red, green, blue;
+    ++src;
 
     pixel *pixel1, *pixel2, *pixel3, *pixel4, *pixel5, *pixel6, *pixel7, *pixel8, *pixel9, *minp, *maxp;
     int sumRed1, sumRed2, sumRed3, sumGreen1, sumGreen2, sumGreen3, sumBlue1, sumBlue2, sumBlue3;
 
-    pixel1 = src - 1;
-    pixel2 = src;
-    pixel3 = src + 1;
-    pixel4 = pixel1 + m;
-    pixel5 = pixel4 + 1;
-    pixel6 = pixel5 + 1;
-    pixel7 = pixel4 + m;
-    pixel8 = pixel7 + 1;
-    pixel9 = pixel8 + 1;
+    for (i = end - 1; i > 0; --i) {
 
-    for (i = 1; i < end; ++i) {
+        pixel1 = src - 1;
+        pixel2 = src;
+        pixel3 = src + 1;
+        pixel4 = pixel1 + dim;
+        pixel5 = pixel4 + 1;
+        pixel6 = pixel5 + 1;
+        pixel7 = pixel4 + dim;
+        pixel8 = pixel7 + 1;
+        pixel9 = pixel8 + 1;
+
         sumRed1 = pixel1->red + pixel4->red + pixel7->red;
         sumGreen1 = pixel1->green + pixel4->green + pixel7->green;
         sumBlue1 = pixel1->blue + pixel4->blue + pixel7->blue;
@@ -193,7 +179,7 @@ void smoothBlurFilter(pixel *src, char *c) {
         sumGreen3 = pixel3->green + pixel6->green + pixel9->green;
         sumBlue3 = pixel3->blue + pixel6->blue + pixel9->blue;
 
-        for (j = 1; j < end; ++j) {
+        for (j = end - 1; j > 0; --j) {
 
             red = sumRed1 + sumRed2 + sumRed3;
             green = sumGreen1 + sumGreen2 + sumGreen3;
@@ -320,16 +306,7 @@ void smoothBlurFilter(pixel *src, char *c) {
             sumBlue3 = pixel3->blue + pixel6->blue + pixel9->blue;
 
         }
-
-        pixel1 += 2;
-        pixel2 += 2;
-        pixel3 += 2;
-        pixel4 += 2;
-        pixel5 += 2;
-        pixel6 += 2;
-        pixel7 += 2;
-        pixel8 += 2;
-        pixel9 += 2;
+        src += dim;
         c += 6;
     }
 }
@@ -337,7 +314,7 @@ void smoothBlurFilter(pixel *src, char *c) {
 void charsToPixels(Image *charsImg, pixel* pixels) {
     char *data = image->data;
     int row, i;
-    for (row = 0; row < NM - 3; row+=4) {
+    for (row = NM - 3; row > 0; row-=4) {
         pixels->red = *(data++);
         pixels->green = *(data++);
         pixels->blue = *(data++);
@@ -355,7 +332,7 @@ void charsToPixels(Image *charsImg, pixel* pixels) {
         pixels->blue = *(data++);
         ++pixels;
     }
-    for (i = row; i < NM; ++i) {
+    for (i = row - 1; i > 0; --i) {
         pixels->red = *(data++);
         pixels->green = *(data++);
         pixels->blue = *(data++);
@@ -370,7 +347,7 @@ void charsToPixelsAndSum(Image *charsImg, pixel* pixels) {
     int row, i, j;
 
     // first row
-    for (i = 0; i < m - 3; i += 4) {
+    for (i = m - 3; i > 0; i -= 4) {
         pixels->red = *data;
         ++data;
         pixels->green = *data;
@@ -404,7 +381,7 @@ void charsToPixelsAndSum(Image *charsImg, pixel* pixels) {
         ++pixels;
     }
 
-    for (j = i; i < m; ++i) {
+    for (j = i - 1; i > 0; --i) {
         pixels->red = *data;
         ++data;
         pixels->green = *data;
@@ -477,7 +454,7 @@ void charsToPixelsAndSum(Image *charsImg, pixel* pixels) {
     }
 
     // last row
-    for (i = 0; i < m - 3; i += 4) {
+    for (i = m - 3; i > 0; i -= 4) {
         pixels->red = *data;
         ++data;
         pixels->green = *data;
@@ -511,7 +488,7 @@ void charsToPixelsAndSum(Image *charsImg, pixel* pixels) {
         ++pixels;
     }
 
-    for (j = i; i < m; ++i) {
+    for (j = i - 1; i > 0; --i) {
         pixels->red = *data;
         ++data;
         pixels->green = *data;
@@ -524,7 +501,7 @@ void charsToPixelsAndSum(Image *charsImg, pixel* pixels) {
 
 void imageToChars(unsigned char *data, unsigned char* c) {
     int i, j;
-    for (i = 0; i < NM3 - 5; i+=6) {
+    for (i = NM3 - 5; i > 0; i-=6) {
         *c = *data;
         ++data;
         ++c;
@@ -549,7 +526,7 @@ void imageToChars(unsigned char *data, unsigned char* c) {
         ++data;
         ++c;
     }
-    for (j = i; i < NM3; ++j) {
+    for (j = i - 1; i > 0; --j) {
         *c = *data;
         ++data;
         ++c;
@@ -564,10 +541,10 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
         pixel *backupOrg = malloc(NM_PIXEL);
         charsToPixels(image, backupOrg);
         char *c = image->data + M3PLUS3;
-        smoothBlur(backupOrg + 1, c);
+        smoothBlur(m, backupOrg, c);
         imageToChars(image->data, chars);
         writeBMP(image, srcImgpName, blurRsltImgName);
-        smoothSharp(chars + 3, c);
+        smoothSharp(m, chars, c);
         writeBMP(image, srcImgpName, sharpRsltImgName);
         free(chars);
         free(backupOrg);
@@ -576,10 +553,10 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
         pixel *backupOrg = malloc(NM_PIXEL);
         charsToPixelsAndSum(image, backupOrg);
         char *c = image->data + M3PLUS3;
-        smoothBlurFilter(backupOrg + 1, c);
+        smoothBlurFilter(m, backupOrg, c);
         imageToChars(image->data, chars);
         writeBMP(image, srcImgpName, filteredBlurRsltImgName);
-        smoothSharp(chars + 3, c);
+        smoothSharp(m, chars, c);
         writeBMP(image, srcImgpName, filteredSharpRsltImgName);
         free(chars);
         free(backupOrg);
