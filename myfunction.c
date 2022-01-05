@@ -14,13 +14,10 @@ typedef struct {
 } pixel;
 
 
-void smoothBlur(unsigned char *pixel1, char *c) {
-    int end = m - 1, i, j, k;
-    unsigned char *pixel2, *pixel3;
-    int sumRed1, sumRed2, sumRed3, sumGreen1, sumGreen2, sumGreen3, sumBlue1, sumBlue2, sumBlue3;
-
-    pixel2 = pixel1 + DIM3;
-    pixel3 = pixel2 + DIM3;
+void smoothBlur(register unsigned char *pixel1, register char *c) {
+    register unsigned char *pixel2 = pixel1 + DIM3;
+    register unsigned char *pixel3 = pixel2 + DIM3;
+    register int sumRed1, sumRed2, sumRed3, sumGreen1, sumGreen2, sumGreen3, sumBlue1, sumBlue2, sumBlue3, end = m - 1, j, i, k;
 
     for (i = end - 1; i > 0; --i) {
 
@@ -87,8 +84,8 @@ void smoothBlur(unsigned char *pixel1, char *c) {
 * Ignore pixels where the kernel exceeds bounds. These are pixels with row index smaller than kernelSize/2 and/or
 * column index smaller than kernelSize/2
 */
-void smoothSharp(unsigned char *src, unsigned char *c) {
-    int end = m - 1, i, j, red, green, blue;
+void smoothSharp(register unsigned char *src, unsigned char *c) {
+    register int end = m - 1, i, j, red, green, blue;
     register unsigned char *pixel2 = src + DIM3;
     register unsigned char *pixel3 = pixel2 + DIM3;
 
@@ -136,34 +133,27 @@ void smoothSharp(unsigned char *src, unsigned char *c) {
     }
 }
 
-void smoothBlurFilter(pixel *src, char *c) {
-    int end = m - 1, i, j, min_intensity, max_intensity, red, green, blue;
+void smoothBlurFilter(register pixel *pixel2, register char *c) {
+    register int end = m - 1, i, j, min_intensity, max_intensity, red, green, blue;
 
-    pixel *pixel1, *pixel2, *pixel3, *pixel4, *pixel5, *pixel6, *pixel7, *pixel8, *pixel9, *minp, *maxp;
-    int sumRed1, sumRed2, sumRed3, sumGreen1, sumGreen2, sumGreen3, sumBlue1, sumBlue2, sumBlue3;
+    register pixel *pixel5, *pixel8, *minp, *maxp;
+    register int sumRed1, sumRed2, sumRed3, sumGreen1, sumGreen2, sumGreen3, sumBlue1, sumBlue2, sumBlue3;
 
-    pixel1 = src - 1;
-    pixel2 = src;
-    pixel3 = src + 1;
-    pixel4 = pixel1 + m;
-    pixel5 = pixel4 + 1;
-    pixel6 = pixel5 + 1;
-    pixel7 = pixel4 + m;
-    pixel8 = pixel7 + 1;
-    pixel9 = pixel8 + 1;
+    pixel5 = pixel2 + m;
+    pixel8 = pixel5 + m;
 
     for (i = end - 1; i > 0; --i) {
-        sumRed1 = pixel1->red + pixel4->red + pixel7->red;
-        sumGreen1 = pixel1->green + pixel4->green + pixel7->green;
-        sumBlue1 = pixel1->blue + pixel4->blue + pixel7->blue;
+        sumRed1 = (pixel2 - 1)->red + (pixel5 - 1)->red + (pixel8 - 1)->red;
+        sumGreen1 = (pixel2 - 1)->green + (pixel5 - 1)->green + (pixel8 - 1)->green;
+        sumBlue1 = (pixel2 - 1)->blue + (pixel5 - 1)->blue + (pixel8 - 1)->blue;
 
         sumRed2 = pixel2->red + pixel5->red + pixel8->red;
         sumGreen2 = pixel2->green + pixel5->green + pixel8->green;
         sumBlue2 = pixel2->blue + pixel5->blue + pixel8->blue;
 
-        sumRed3 = pixel3->red + pixel6->red + pixel9->red;
-        sumGreen3 = pixel3->green + pixel6->green + pixel9->green;
-        sumBlue3 = pixel3->blue + pixel6->blue + pixel9->blue;
+        sumRed3 = (pixel2 + 1)->red + (pixel5 + 1)->red + (pixel8 + 1)->red;
+        sumGreen3 = (pixel2 + 1)->green + (pixel5 + 1)->green + (pixel8 + 1)->green;
+        sumBlue3 = (pixel2 + 1)->blue + (pixel5 + 1)->blue + (pixel8 + 1)->blue;
 
         for (j = end - 1; j > 0; --j) {
 
@@ -171,10 +161,10 @@ void smoothBlurFilter(pixel *src, char *c) {
             green = sumGreen1 + sumGreen2 + sumGreen3;
             blue = sumBlue1 + sumBlue2 + sumBlue3;
 
-            min_intensity = pixel1->sum;
-            max_intensity = pixel1->sum;
-            minp = pixel1;
-            maxp = pixel1;
+            min_intensity = (pixel2 - 1)->sum;
+            max_intensity = (pixel2 - 1)->sum;
+            minp = (pixel2 - 1);
+            maxp = (pixel2 - 1);
 
             if (pixel2->sum <= min_intensity) {
                 min_intensity = pixel2->sum;
@@ -185,22 +175,22 @@ void smoothBlurFilter(pixel *src, char *c) {
                 maxp = pixel2;
             }
 
-            if (pixel3->sum <= min_intensity) {
-                min_intensity = pixel3->sum;
-                minp = pixel3;
+            if ((pixel2 + 1)->sum <= min_intensity) {
+                min_intensity = (pixel2 + 1)->sum;
+                minp = (pixel2 + 1);
             }
-            if (pixel3->sum > max_intensity) {
-                max_intensity = pixel3->sum;
-                maxp = pixel3;
+            if ((pixel2 + 1)->sum > max_intensity) {
+                max_intensity = (pixel2 + 1)->sum;
+                maxp = (pixel2 + 1);
             }
 
-            if (pixel4->sum <= min_intensity) {
-                min_intensity = pixel4->sum;
-                minp = pixel4;
+            if ((pixel5 - 1)->sum <= min_intensity) {
+                min_intensity = (pixel5 - 1)->sum;
+                minp = (pixel5 - 1);
             }
-            if (pixel4->sum > max_intensity) {
-                max_intensity = pixel4->sum;
-                maxp = pixel4;
+            if ((pixel5 - 1)->sum > max_intensity) {
+                max_intensity = (pixel5 - 1)->sum;
+                maxp = (pixel5 - 1);
             }
 
             if (pixel5->sum <= min_intensity) {
@@ -212,22 +202,22 @@ void smoothBlurFilter(pixel *src, char *c) {
                 maxp = pixel5;
             }
 
-            if (pixel6->sum <= min_intensity) {
-                min_intensity = pixel6->sum;
-                minp = pixel6;
+            if ((pixel5 + 1)->sum <= min_intensity) {
+                min_intensity = (pixel5 + 1)->sum;
+                minp = (pixel5 + 1);
             }
-            if (pixel6->sum > max_intensity) {
-                max_intensity = pixel6->sum;
-                maxp = pixel6;
+            if ((pixel5 + 1)->sum > max_intensity) {
+                max_intensity = (pixel5 + 1)->sum;
+                maxp = (pixel5 + 1);
             }
 
-            if (pixel7->sum <= min_intensity) {
-                min_intensity = pixel7->sum;
-                minp = pixel7;
+            if ((pixel8 - 1)->sum <= min_intensity) {
+                min_intensity = (pixel8 - 1)->sum;
+                minp = (pixel8 - 1);
             }
-            if (pixel7->sum > max_intensity) {
-                max_intensity = pixel7->sum;
-                maxp = pixel7;
+            if ((pixel8 - 1)->sum > max_intensity) {
+                max_intensity = (pixel8 - 1)->sum;
+                maxp = (pixel8 - 1);
             }
 
             if (pixel8->sum <= min_intensity) {
@@ -239,10 +229,10 @@ void smoothBlurFilter(pixel *src, char *c) {
                 maxp = pixel8;
             }
 
-            if (pixel9->sum <= min_intensity)
-                minp = pixel9;
-            if (pixel9->sum > max_intensity)
-                maxp = pixel9;
+            if ((pixel8 + 1)->sum <= min_intensity)
+                minp = (pixel8 + 1);
+            if ((pixel8 + 1)->sum > max_intensity)
+                maxp = (pixel8 + 1);
 
 
             // divide by kernel's weight
@@ -269,15 +259,9 @@ void smoothBlurFilter(pixel *src, char *c) {
                 *c = 255;
             ++c;
 
-            ++pixel1;
             ++pixel2;
-            ++pixel3;
-            ++pixel4;
             ++pixel5;
-            ++pixel6;
-            ++pixel7;
             ++pixel8;
-            ++pixel9;
 
             sumRed1 = sumRed2;
             sumGreen1 = sumGreen2;
@@ -287,58 +271,23 @@ void smoothBlurFilter(pixel *src, char *c) {
             sumGreen2 = sumGreen3;
             sumBlue2 = sumBlue3;
 
-            sumRed3 = pixel3->red + pixel6->red + pixel9->red;
-            sumGreen3 = pixel3->green + pixel6->green + pixel9->green;
-            sumBlue3 = pixel3->blue + pixel6->blue + pixel9->blue;
+            sumRed3 = (pixel2 + 1)->red + (pixel5 + 1)->red + (pixel8 + 1)->red;
+            sumGreen3 = (pixel2 + 1)->green + (pixel5 + 1)->green + (pixel8 + 1)->green;
+            sumBlue3 = (pixel2 + 1)->blue + (pixel5 + 1)->blue + (pixel8 + 1)->blue;
 
         }
 
-        pixel1 += 2;
         pixel2 += 2;
-        pixel3 += 2;
-        pixel4 += 2;
         pixel5 += 2;
-        pixel6 += 2;
-        pixel7 += 2;
         pixel8 += 2;
-        pixel9 += 2;
         c += 6;
     }
 }
 
-void charsToPixels(Image *charsImg, pixel* pixels) {
-    char *data = image->data;
-    int row, i;
-    for (row = 0; row < NM - 3; row+=4) {
-        pixels->red = *(data++);
-        pixels->green = *(data++);
-        pixels->blue = *(data++);
-        ++pixels;
-        pixels->red = *(data++);
-        pixels->green = *(data++);
-        pixels->blue = *(data++);
-        ++pixels;
-        pixels->red = *(data++);
-        pixels->green = *(data++);
-        pixels->blue = *(data++);
-        ++pixels;
-        pixels->red = *(data++);
-        pixels->green = *(data++);
-        pixels->blue = *(data++);
-        ++pixels;
-    }
-    for (i = row; i < NM; ++i) {
-        pixels->red = *(data++);
-        pixels->green = *(data++);
-        pixels->blue = *(data++);
-        ++pixels;
-    }
-}
 
-
-void charsToPixelsAndSum(Image *charsImg, pixel* pixels) {
+void charsToPixelsAndSum(Image *charsImg, register pixel* pixels) {
     pixel *helpSum = pixels + m + 1;
-    char *data = image->data;
+    register char *data = image->data;
     int row, i, j;
 
     // first row
@@ -494,9 +443,9 @@ void charsToPixelsAndSum(Image *charsImg, pixel* pixels) {
     }
 }
 
-void imageToChars(unsigned char *data, unsigned char* c) {
+void imageToChars(register unsigned char *data, register unsigned char* c) {
     int i, j;
-    for (i = 0; i < NM3 - 5; i+=6) {
+    for (i = 0; i < NM3 - 6; i+=6) {
         *c = *data;
         ++data;
         ++c;
@@ -521,7 +470,7 @@ void imageToChars(unsigned char *data, unsigned char* c) {
         ++data;
         ++c;
     }
-    for (j = i; i < NM3; ++j) {
+    for (j = i; j < NM3; ++j) {
         *c = *data;
         ++data;
         ++c;
