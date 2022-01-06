@@ -14,6 +14,7 @@ typedef struct {
 } pixel;
 
 
+// Apply the blur kernel over each pixel, ignore pixels where the kernel exceeds bounds
 void smoothBlur(register unsigned char *pixel1, register char *c) {
     // save the pointers to 3 pixels in registers
     register unsigned char *pixel2 = pixel1 + DIM3;
@@ -94,11 +95,8 @@ void smoothBlur(register unsigned char *pixel1, register char *c) {
     }
 }
 
-/*
-* Apply the kernel over each pixel.
-* Ignore pixels where the kernel exceeds bounds. These are pixels with row index smaller than kernelSize/2 and/or
-* column index smaller than kernelSize/2
-*/
+
+// Apply the sharp kernel over each pixel, ignore pixels where the kernel exceeds bounds
 void smoothSharp(register unsigned char *src, unsigned char *c) {
     register int end = m - 1, i, j, sum;
 
@@ -145,6 +143,7 @@ void smoothSharp(register unsigned char *src, unsigned char *c) {
     }
 }
 
+// Apply the blur filter kernel over each pixel, ignore pixels where the kernel exceeds bounds
 void smoothBlurFilter(register pixel *pixel2, register char *c) {
     register int end = m - 1, i, j, min_intensity, max_intensity, red, green, blue;
 
@@ -309,6 +308,7 @@ void smoothBlurFilter(register pixel *pixel2, register char *c) {
 }
 
 
+// copy the pixels of the image to the array of pixels
 void charsToPixelsAndSum(Image *charsImg, register pixel* pixels) {
 
     // save the data in a register
@@ -368,6 +368,7 @@ void charsToPixelsAndSum(Image *charsImg, register pixel* pixels) {
     }
 }
 
+// copy the pixels of the image to the array of chars
 void imageToChars(register unsigned char *data, register unsigned char* c) {
     int i, j;
 
@@ -407,6 +408,7 @@ void imageToChars(register unsigned char *data, register unsigned char* c) {
 }
 
 
+// blur, sharp or filter the image
 void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sharpRsltImgName, char* filteredBlurRsltImgName, char* filteredSharpRsltImgName, char flag) {
 
     // no filter
