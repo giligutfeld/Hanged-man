@@ -100,7 +100,7 @@ void smoothBlur(register unsigned char *pixel1, register char *c) {
 * column index smaller than kernelSize/2
 */
 void smoothSharp(register unsigned char *src, unsigned char *c) {
-    register int end = m - 1, i, j, red, green, blue;
+    register int end = m - 1, i, j, sum;
 
     // save the pointers to 3 pixels in registers
     register unsigned char *pixel2 = src + DIM3;
@@ -113,37 +113,22 @@ void smoothSharp(register unsigned char *src, unsigned char *c) {
         for (j = end - 1; j > 0; j--) {
 
             // sharp the red color of the first pixel
-            red = - (*(src - 3) + *src + *(src + 3) + *(pixel2 - 3) -9 * *pixel2 +
+            sum = - (*(src - 3) + *src + *(src + 3) + *(pixel2 - 3) -9 * *pixel2 +
                      *(pixel2 + 3) + *(pixel3 - 3) + *pixel3 + *(pixel3 + 3));
-            if (red < 0)
-                *c = 0;
-            else if (red <= 255)
-                *c = red;
-            else
-                *c = 255;
+            *c = (((sum = (sum > 0 ? sum: 0)) < 255 ? sum : 255));
             ++c;
 
             // sharp the green color of the first pixel
-            green = - (*(src - 2) + *(src + 1) + *(src + 4) + *(pixel2 - 2) -9 * *(pixel2 + 1) +
+            sum = - (*(src - 2) + *(src + 1) + *(src + 4) + *(pixel2 - 2) -9 * *(pixel2 + 1) +
                        *(pixel2 + 4) + *(pixel3 - 2) + *(pixel3 + 1) + *(pixel3 + 4));
-            if (green < 0)
-                *c = 0;
-            else if (green <= 255)
-                *c = green;
-            else
-                *c = 255;
+            *c = (((sum = (sum > 0 ? sum: 0)) < 255 ? sum : 255));
 
             ++c;
 
             // sharp the blue color of the first pixel
-            blue = - (*(src - 1) + *(src + 2) + *(src + 5) + *(pixel2 - 1) -9 * *(pixel2 + 2) +
+            sum = - (*(src - 1) + *(src + 2) + *(src + 5) + *(pixel2 - 1) -9 * *(pixel2 + 2) +
                       *(pixel2 + 5) + *(pixel3 - 1) + *(pixel3 + 2) + *(pixel3 + 5));
-            if (blue < 0)
-                *c = 0;
-            else if (blue <= 255)
-                *c = blue;
-            else
-                *c = 255;
+            *c = (((sum = (sum > 0 ? sum: 0)) < 255 ? sum : 255));
             ++c;
 
             // go to the next pixel
@@ -325,20 +310,20 @@ void smoothBlurFilter(register pixel *pixel2, register char *c) {
 
 
 void charsToPixelsAndSum(Image *charsImg, register pixel* pixels) {
-    pixel *helpSum = pixels + m + 1;
 
     // save the data in a register
     register char *data = image->data;
-    int row, i, j;
+    register int i;
 
-    // copy first row to pixels
-    for (i = 0; i < m - 3; i += 4) {
+    // copy the pixels in the image to pixels
+    for (i = 0; i < NM - 3; i += 4) {
         pixels->red = *data;
         ++data;
         pixels->green = *data;
         ++data;
         pixels->blue = *data;
         ++data;
+        pixels->sum = pixels->red + pixels->green + pixels->blue;
         ++pixels;
 
         pixels->red = *data;
@@ -347,6 +332,7 @@ void charsToPixelsAndSum(Image *charsImg, register pixel* pixels) {
         ++data;
         pixels->blue = *data;
         ++data;
+        pixels->sum = pixels->red + pixels->green + pixels->blue;
         ++pixels;
 
         pixels->red = *data;
@@ -355,6 +341,7 @@ void charsToPixelsAndSum(Image *charsImg, register pixel* pixels) {
         ++data;
         pixels->blue = *data;
         ++data;
+        pixels->sum = pixels->red + pixels->green + pixels->blue;
         ++pixels;
 
         pixels->red = *data;
@@ -363,128 +350,20 @@ void charsToPixelsAndSum(Image *charsImg, register pixel* pixels) {
         ++data;
         pixels->blue = *data;
         ++data;
-        ++pixels;
-    }
-
-    // copy the last pixels of the row
-    for (j = i; i < m; ++i) {
-        pixels->red = *data;
-        ++data;
-        pixels->green = *data;
-        ++data;
-        pixels->blue = *data;
-        ++data;
+        pixels->sum = pixels->red + pixels->green + pixels->blue;
         ++pixels;
     }
 
-    // copy each row to pixels
-    for (i = 1; i < m - 1; i++) {
-
-        // first pixel in the row
+    int j;
+    // copy the last pixels of the image
+    for (j = i; i < NM; ++i) {
         pixels->red = *data;
         ++data;
         pixels->green = *data;
         ++data;
         pixels->blue = *data;
         ++data;
-        ++pixels;
-
-        // copy every 3 pixels in the row to pixels in loop unrolling and update the sum of each pixel
-        for (row = 1; row < m - 3; row += 3) {
-            pixels->red = *data;
-            ++data;
-            pixels->green = *data;
-            ++data;
-            pixels->blue = *data;
-            ++data;
-            pixels->sum = pixels->red + pixels->green + pixels->blue;
-            ++pixels;
-
-            pixels->red = *data;
-            ++data;
-            pixels->green = *data;
-            ++data;
-            pixels->blue = *data;
-            ++data;
-            pixels->sum = pixels->red + pixels->green + pixels->blue;
-            ++pixels;
-
-            pixels->red = *data;
-            pixels->sum = pixels->red;
-            ++data;
-            pixels->green = *data;
-            pixels->sum += pixels->green;
-            ++data;
-            pixels->blue = *data;
-            pixels->sum += pixels->blue;
-            ++data;
-            ++pixels;
-        }
-        // copy the last pixels of the row
-        for (j = row; j < m - 1; ++j) {
-            pixels->red = *data;
-            ++data;
-            pixels->green = *data;
-            ++data;
-            pixels->blue = *data;
-            ++data;
-            pixels->sum = pixels->red + pixels->green + pixels->blue;
-            ++pixels;
-        }
-
-        // last pixel in the row
-        pixels->red = *data;
-        ++data;
-        pixels->green = *data;
-        ++data;
-        pixels->blue = *data;
-        ++data;
-        ++pixels;
-    }
-
-    // last row
-    for (i = 0; i < m - 3; i += 4) {
-        pixels->red = *data;
-        ++data;
-        pixels->green = *data;
-        ++data;
-        pixels->blue = *data;
-        ++data;
-        ++pixels;
-
-        pixels->red = *data;
-        ++data;
-        pixels->green = *data;
-        ++data;
-        pixels->blue = *data;
-        ++data;
-        ++pixels;
-
-        pixels->red = *data;
-        ++data;
-        pixels->green = *data;
-        ++data;
-        pixels->blue = *data;
-        ++data;
-        ++pixels;
-
-        pixels->red = *data;
-        ++data;
-        pixels->green = *data;
-        ++data;
-        pixels->blue = *data;
-        ++data;
-        ++pixels;
-    }
-
-    // copy the last pixels of the row
-    for (j = i; i < m; ++i) {
-        pixels->red = *data;
-        ++data;
-        pixels->green = *data;
-        ++data;
-        pixels->blue = *data;
-        ++data;
+        pixels->sum = pixels->red + pixels->green + pixels->blue;
         ++pixels;
     }
 }
@@ -493,7 +372,7 @@ void imageToChars(register unsigned char *data, register unsigned char* c) {
     int i, j;
 
     // copy every pixel in the data to the chars array in loop unrolling
-    for (i = 0; i < NM3 - 6; i+=6) {
+    for (i = 0; i < NM3 - 5; i+=6) {
         *c = *data;
         ++data;
         ++c;
