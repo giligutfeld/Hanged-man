@@ -255,14 +255,14 @@ void smoothBlurFilter(register unsigned char *pixel2, register unsigned char *c,
 
             // save the minimum and maximum pixel as the first
             sum = *sum1;
-            if (*(sum1 - 1) < sum) {
+            min_intensity = *(sum1 - 1);
+            if (min_intensity < sum) {
                 maxp = pixel1;
                 max_intensity = sum;
                 minp = pixel1 - 3;
-                min_intensity = *(sum1 - 1);
             } else {
                 maxp = pixel1 - 3;
-                max_intensity = *(sum1 - 1);
+                max_intensity = min_intensity;
                 minp = pixel1;
                 min_intensity = sum;
             }
@@ -282,7 +282,7 @@ void smoothBlurFilter(register unsigned char *pixel2, register unsigned char *c,
                 max_intensity = sum;
             } else if (min_intensity >= sum) {
                 minp = pixel2 - 3;
-                min_intensity = *(sum2 - 1);
+                min_intensity = sum;
             }
 
             sum = *(sum2);
@@ -356,14 +356,14 @@ void smoothBlurFilter(register unsigned char *pixel2, register unsigned char *c,
 
             // then check every pixel and update the min and max in accordance
             sum = *sum1;
-            if (*(sum1 - 1) < sum) {
+            min_intensity = *(sum1 - 1);
+            if (min_intensity < sum) {
                 maxp = pixel1;
                 max_intensity = sum;
                 minp = pixel1 - 3;
-                min_intensity = *(sum1 - 1);
             } else {
                 maxp = pixel1 - 3;
-                max_intensity = *(sum1 - 1);
+                max_intensity = min_intensity;
                 minp = pixel1;
                 min_intensity = sum;
             }
@@ -383,7 +383,7 @@ void smoothBlurFilter(register unsigned char *pixel2, register unsigned char *c,
                 max_intensity = sum;
             } else if (min_intensity >= sum) {
                 minp = pixel2 - 3;
-                min_intensity = *(sum2 - 1);
+                min_intensity = sum;
             }
 
             sum = *(sum2);
@@ -458,14 +458,14 @@ void smoothBlurFilter(register unsigned char *pixel2, register unsigned char *c,
 
             // then check every pixel and update the min and max in accordance
             sum = *sum1;
-            if (*(sum1 - 1) < sum) {
+            min_intensity = *(sum1 - 1);
+            if (min_intensity < sum) {
                 maxp = pixel1;
                 max_intensity = sum;
                 minp = pixel1 - 3;
-                min_intensity = *(sum1 - 1);
             } else {
                 maxp = pixel1 - 3;
-                max_intensity = *(sum1 - 1);
+                max_intensity = min_intensity;
                 minp = pixel1;
                 min_intensity = sum;
             }
@@ -485,7 +485,7 @@ void smoothBlurFilter(register unsigned char *pixel2, register unsigned char *c,
                 max_intensity = sum;
             } else if (min_intensity >= sum) {
                 minp = pixel2 - 3;
-                min_intensity = *(sum2 - 1);
+                min_intensity = sum;
             }
 
             sum = *(sum2);
@@ -567,14 +567,14 @@ void smoothBlurFilter(register unsigned char *pixel2, register unsigned char *c,
 
             // then check every pixel and update the min and max in accordance
             sum = *sum1;
-            if (*(sum1 - 1) < sum) {
+            min_intensity = *(sum1 - 1);
+            if (min_intensity < sum) {
                 maxp = pixel1;
                 max_intensity = sum;
                 minp = pixel1 - 3;
-                min_intensity = *(sum1 - 1);
             } else {
                 maxp = pixel1 - 3;
-                max_intensity = *(sum1 - 1);
+                max_intensity = min_intensity;
                 minp = pixel1;
                 min_intensity = sum;
             }
@@ -594,7 +594,7 @@ void smoothBlurFilter(register unsigned char *pixel2, register unsigned char *c,
                 max_intensity = sum;
             } else if (min_intensity >= sum) {
                 minp = pixel2 - 3;
-                min_intensity = *(sum2 - 1);
+                min_intensity = sum;
             }
 
             sum = *(sum2);
